@@ -86,10 +86,13 @@ struct Input(Vec<Movement>);
 impl Input {
     fn from_stdin() -> Result<Self, AdventError> {
         let stdin = io::stdin();
-        let movements: Result<Vec<Movement>, ParseError> = stdin
+        let movements: Result<Vec<Movement>, AdventError> = stdin
             .lock()
             .lines()
-            .map(|l| l.unwrap().parse::<Movement>())
+            .map(|l| {
+                l.map_err(|e| e.into())
+                    .and_then(|l| l.parse::<Movement>().map_err(|e| e.into()))
+            })
             .collect();
         Ok(Input(movements?))
     }
