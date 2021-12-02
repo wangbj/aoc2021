@@ -17,17 +17,26 @@ impl Input {
 }
 
 fn solution1(input: &Input) -> Option<i64> {
-    Some(input.0.iter().zip(input.0.iter().skip(1)).fold(0, |n, (&x, &y)| {
-	if x < y {
-	    1 + n
-	} else {
-	    n
-	}
-    }))
+    Some(input.0.iter().zip(input.0.iter().skip(1)).fold(
+        0,
+        |n, (&x, &y)| {
+            if x < y {
+                1 + n
+            } else {
+                n
+            }
+        },
+    ))
 }
 
 fn solution2(input: &Input) -> Option<i64> {
-    let sums: Vec<_> = input.0.iter().zip(input.0.iter().skip(1)).zip(input.0.iter().skip(2)).map(|((&x, &y), &z)| x+y+z).collect();
+    let sums: Vec<_> = input
+        .0
+        .iter()
+        .zip(input.0.iter().skip(1))
+        .zip(input.0.iter().skip(2))
+        .map(|((&x, &y), &z)| x + y + z)
+        .collect();
     let modified = Input(sums);
     solution1(&modified)
 }

@@ -84,29 +84,72 @@ enum AdventError {
 struct Input(Vec<Movement>);
 
 impl Input {
-    fn from_stdin() -> Self {
+    fn from_stdin() -> Result<Self, AdventError> {
         let stdin = io::stdin();
-        Input(
-            stdin
-                .lock()
-                .lines()
-                .filter_map(|l| l.unwrap().parse::<Movement>().ok())
-                .collect::<Vec<_>>(),
-        )
+        let movements: Result<Vec<Movement>, ParseError> = stdin
+            .lock()
+            .lines()
+            .map(|l| l.unwrap().parse::<Movement>())
+            .collect();
+        Ok(Input(movements?))
     }
 }
 
-fn part1(input: &Input) -> Result<i64, AdventError> {
+#[derive(Default, Clone, Debug, Eq, PartialEq)]
+struct Submarine {
+    ship: (i32, i32),
+    aim: i32,
+}
+
+impl Submarine {
+    fn new() -> Self {
+        Default::default()
+    }
+    fn up(&mut self, unit: i32) {
+        self.aim -= unit;
+    }
+    fn down(&mut self, unit: i32) {
+        self.aim += unit;
+    }
+    fn forward(&mut self, unit: i32) {
+        self.ship.0 += unit;
+        self.ship.1 += unit * self.aim;
+    }
+}
+
+fn part1(input: &Input) -> i64 {
     let pos = input.0.iter().fold((0, 0), |acc, next| match next.dir {
         Direction::Up => (acc.0, acc.1 - next.unit),
         Direction::Down => (acc.0, acc.1 + next.unit),
         Direction::Forward => (acc.0 + next.unit, acc.1),
     });
-    Ok(pos.0 as i64 * pos.1 as i64)
+    pos.0 as i64 * pos.1 as i64
+}
+
+fn part2(input: &Input) -> i64 {
+    let pos = input
+        .0
+        .iter()
+        .fold(Submarine::new(), |mut acc, next| match next.dir {
+            Direction::Up => {
+                acc.up(next.unit);
+                acc
+            }
+            Direction::Down => {
+                acc.down(next.unit);
+                acc
+            }
+            Direction::Forward => {
+                acc.forward(next.unit);
+                acc
+            }
+        });
+    pos.ship.0 as i64 * pos.ship.1 as i64
 }
 
 fn main() -> Result<(), AdventError> {
-    let input = Input::from_stdin();
+    let input = Input::from_stdin()?;
     println!("{:?}", part1(&input));
+    println!("{:?}", part2(&input));
     Ok(())
 }
